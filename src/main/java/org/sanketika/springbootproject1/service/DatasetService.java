@@ -1,7 +1,5 @@
 package org.sanketika.springbootproject1.service;
 
-
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.sanketika.springbootproject1.entity.Dataset;
 import org.sanketika.springbootproject1.entity.Status;
@@ -44,7 +42,7 @@ public class DatasetService {
     }
 
     //GETBYID
-    public ResponseEntity<?> getById(String id) {
+    public ResponseEntity<Map<String,Object>> getById(String id) {
 
         Optional<Dataset> dataset = datasetRepository.findById(id);
         if (dataset.isPresent()) {
@@ -60,16 +58,16 @@ public class DatasetService {
 
     public ResponseEntity<?> getByStatus(String status) {
         if (status == null || status.trim().isEmpty()) {
-            return ResponseEntity.badRequest().body(DatasetResponse.createResponse("failure", HttpStatus.BAD_REQUEST, "status parameter is required", null));
+            return ResponseEntity.badRequest().body( DatasetResponse.createResponse("failure", HttpStatus.BAD_REQUEST, "status parameter is required", null));
         }
         try {
             Status enumStatus = Status.valueOf(status.toUpperCase());
             List<Dataset> datasetList = datasetRepository.findByStatus(enumStatus);
-            return ResponseEntity.ok(DatasetResponse.createResponse(
+            return ResponseEntity.ok( DatasetResponse.createResponse(
                     "success", HttpStatus.OK, null, datasetList));
 
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(DatasetResponse.createResponse(
+            return ResponseEntity.badRequest().body( DatasetResponse.createResponse(
                     "failure", HttpStatus.BAD_REQUEST, "Invalid status. Allowed: LIVE, DRAFT, RETIRED", null));
         }
 
@@ -77,7 +75,7 @@ public class DatasetService {
 
     //Create
     @Transactional
-    public ResponseEntity<?> createDataset(String datasetJson) {
+    public ResponseEntity<Map<String,Object>> createDataset(String datasetJson) {
         try {
             Dataset dataset = objectMapper.readValue(datasetJson, Dataset.class);
             Optional<String> validateError = Validation.validate(dataset);
@@ -102,7 +100,7 @@ public class DatasetService {
     }
 
     //updated dataset by id
-     public ResponseEntity<?> updateDatasetById(String id, String updateDataset) {
+     public ResponseEntity<Map<String,Object>> updateDatasetById(String id, String updateDataset) {
         try {
             Optional<Dataset> datasetExi = datasetRepository.findById(id);
             if (datasetExi.isEmpty()) {

@@ -29,7 +29,7 @@ public class Validation {
            return Optional.of("Dataschema is required");
        }
        if (updateDataset.getRouterConfig() == null || updateDataset.getRouterConfig().values().isEmpty()) {
-           return Optional.of("Route config is required");
+           return Optional.of("Router config is required");
        }
        return Optional.empty();
    }

@@ -8,7 +8,7 @@ services:
       POSTGRES_PASSWORD: password
       POSTGRES_DB: datasetapis
     ports:
-      - "5433:5433" #port forwarding for databaseThis allows external applications to connect to PostgreSQL on the specified por
+      - "5433:5433" #port forwarding for database This allows external applications to connect to PostgreSQL on the specified por
     networks:
       - springboot-networks #networks by this both container will interact with each other
     volumes:
