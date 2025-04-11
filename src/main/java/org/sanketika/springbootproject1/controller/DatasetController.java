@@ -1,4 +1,5 @@
 package org.sanketika.springbootproject1.controller;
+import jakarta.validation.Valid;
 import org.sanketika.springbootproject1.entity.Dataset;
 import org.sanketika.springbootproject1.service.DatasetService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +29,7 @@ public class DatasetController {
 
 
     @GetMapping("/getById/{id}")
-    public ResponseEntity<Map<String, Object>> getDatasetById(@PathVariable String id) {
+    public ResponseEntity<Map<String, Object>> getDatasetById(@PathVariable int id) {
         return datasetService.getById(id);
     }
 
@@ -39,17 +40,17 @@ public class DatasetController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<Map<String,Object>> CreateDataset(@RequestBody String datasetJson) {
+    public ResponseEntity<Map<String,Object>> CreateDataset(@RequestBody  String datasetJson) {
         return datasetService.createDataset(datasetJson);
     }
 
     @PutMapping("/update/{id}")
-    public ResponseEntity<Map<String,Object>> UpdateDatasetById(@PathVariable String id, @RequestBody String updateDataset) {
+    public ResponseEntity<Map<String,Object>> UpdateDatasetById(@PathVariable String id,@RequestBody String updateDataset) {
         return datasetService.updateDatasetById(id, updateDataset);
     }
 
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<?> deleteDatasetById(@PathVariable String id) {
+    public ResponseEntity<Map<String,Object>> deleteDatasetById(@PathVariable String id) {
         return datasetService.deleteDatasetById(id);
     }
 

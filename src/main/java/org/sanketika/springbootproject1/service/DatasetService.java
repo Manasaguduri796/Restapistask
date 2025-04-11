@@ -42,11 +42,12 @@ public class DatasetService {
     }
 
     //GETBYID
-    public ResponseEntity<Map<String,Object>> getById(String id) {
+    public ResponseEntity<Map<String,Object>> getById(int id) {
 
-        Optional<Dataset> dataset = datasetRepository.findById(id);
+        String idString = new String(String.valueOf(id));
+        Optional<Dataset> dataset = datasetRepository.findById(idString);
         if (dataset.isPresent()) {
-            return (ResponseEntity.ok(DatasetResponse.createResponse("Success", HttpStatus.OK, null, datasetRepository.findById(id))));
+            return (ResponseEntity.ok(DatasetResponse.createResponse("Success", HttpStatus.OK, null, datasetRepository.findById(idString))));
         }
         else {
             return (ResponseEntity.status(HttpStatus.NOT_FOUND).body(DatasetResponse.createResponse("Failure", HttpStatus.NOT_FOUND, "Requested dataset id is not found", null)));
@@ -135,7 +136,7 @@ public class DatasetService {
     }
 
     //DELETEBYID
-    public ResponseEntity<?> deleteDatasetById(String id) {
+    public ResponseEntity<Map<String,Object>> deleteDatasetById(String id) {
         Optional<Dataset> datasetOpt = datasetRepository.findById(id);
         if (!datasetOpt.isPresent()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(

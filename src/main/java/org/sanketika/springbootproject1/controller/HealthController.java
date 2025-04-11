@@ -9,7 +9,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/datasetapis")
-public class HealthContoller {
+public class HealthController {
     @GetMapping("/health")
     public static ResponseEntity<Map<String,Object>> healthCheck(){
         return ResponseEntity.ok(Map.of("Status","up"));

@@ -8,6 +8,7 @@ import org.springframework.transaction.CannotCreateTransactionException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 import java.sql.SQLNonTransientConnectionException;
 import java.time.LocalDateTime;
@@ -17,10 +18,9 @@ import java.util.Map;
 @ControllerAdvice
 public class ErrorHandling {
 
-    Map<String, Object> response = new HashMap<>();
-
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, Object>> handleValidationException(MethodArgumentNotValidException m)  {
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<Map<String, Object>> handleValidationException(MethodArgumentTypeMismatchException m)  {
+        Map<String, Object> response = new HashMap<>();
         response.put("Status", HttpStatus.BAD_REQUEST.toString());
         response.put("message", "invalid request parameter is provided.");
         response.put("timestamp",LocalDateTime.now());

@@ -1,6 +1,8 @@
 package org.sanketika.springbootproject1.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotEmpty;
+import org.antlr.v4.runtime.misc.NotNull;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -13,6 +15,7 @@ import java.util.Map;
 @Table(name="table_2")
 public class Dataset {
     @Id
+    @NotNull
     private String id;
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "Jsonb")
