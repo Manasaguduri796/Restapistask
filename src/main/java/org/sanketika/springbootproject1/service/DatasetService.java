@@ -103,16 +103,18 @@ public class DatasetService {
     //updated dataset by id
      public ResponseEntity<Map<String,Object>> updateDatasetById(String id, String updateDataset) {
         try {
-            Optional<Dataset> datasetExi = datasetRepository.findById(id);
-            if (datasetExi.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(DatasetResponse.createResponse("Fail", HttpStatus.NOT_FOUND, "requested dataset id not found ", null));
-            }
-            Dataset existingDataset = datasetExi.get();
+
             Dataset updateData = objectMapper.readValue(updateDataset,Dataset.class);
             Optional<String> validationError = Validation.validateForUpdate(updateData);
             if(validationError.isPresent()){
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(DatasetResponse.createResponse("fail",HttpStatus.BAD_REQUEST,validationError.get(),null));
             }
+            Optional<Dataset> datasetExi = datasetRepository.findById(id);
+            if (datasetExi.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(DatasetResponse.createResponse("Fail", HttpStatus.NOT_FOUND, "requested dataset id not found ", null));
+            }
+            Dataset existingDataset = datasetExi.get();
+
             existingDataset.setUpdatedBy("SYSTEM");
             existingDataset.setUpdatedByDate(LocalDateTime.now());
 

@@ -15,7 +15,6 @@ import java.util.Map;
 @Table(name="table_2")
 public class Dataset {
     @Id
-    @NotNull
     private String id;
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "Jsonb")
@@ -37,16 +36,6 @@ public class Dataset {
     @UpdateTimestamp
     private LocalDateTime updatedByDate;
 
-    public Dataset(String id, Map<String, Object> dataSchema, Map<String, Object> routerConfig,Status status, String createdBy, String updatedBy, LocalDateTime createdByDate, LocalDateTime updatedByDate) {
-        this.id = id;
-        this.dataSchema = dataSchema;
-        this.routerConfig = routerConfig;
-        this.status = status;
-        this.createdBy = createdBy;
-        this.updatedBy = updatedBy;
-        this.createdByDate = createdByDate;
-        this.updatedByDate = updatedByDate;
-    }
     public Dataset(){
 
     }

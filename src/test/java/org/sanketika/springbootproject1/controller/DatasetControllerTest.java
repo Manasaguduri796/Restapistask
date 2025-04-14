@@ -2,9 +2,14 @@ package org.sanketika.springbootproject1.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import jakarta.xml.bind.ValidationException;
 import org.hibernate.exception.JDBCConnectionException;
 import org.junit.jupiter.api.Test;
+import org.sanketika.springbootproject1.response.DatasetResponse;
+import org.sanketika.springbootproject1.response.ResponsePost;
+import org.sanketika.springbootproject1.response.SimpleResponse;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.sanketika.springbootproject1.repository.DatasetRepository;
 import org.sanketika.springbootproject1.entity.Dataset;
@@ -42,12 +47,9 @@ class DatasetControllerTest {
     private DatasetRepository datasetRepository;
 
 
-    private Object requestBody;
-
-
     @Test
     void getDatasetsAll_shouldReturnGetAll() throws Exception {
-        Dataset dataset = new Dataset();
+        Dataset dataset = new Dataset();//creationn of fake object which is not hit th real database
         dataset.setCreatedBy("system");
         dataset.setUpdatedBy("system");
         dataset.setCreatedByDate(LocalDateTime.now());
@@ -58,7 +60,7 @@ class DatasetControllerTest {
         dataset.setRouterConfig(routerConfig);
 
         List<Dataset> datasetList = Collections.singletonList(dataset);
-
+        //mocking the repository layer
         when(datasetRepository.findAll()).thenReturn(datasetList);
 
         // Act
@@ -97,7 +99,7 @@ class DatasetControllerTest {
         when(datasetRepository.findById("1")).thenReturn(Optional.of(dataset));
         MvcResult mvcResult = mockMvc.perform(get("/datasetapis/getById/1")
                         .contentType(MediaType.APPLICATION_JSON))
-                        .andReturn();
+                .andReturn();
 
         int status = mvcResult.getResponse().getStatus();
         assertEquals(200, status);
@@ -127,7 +129,7 @@ class DatasetControllerTest {
 
         MvcResult mvcResult = mockMvc.perform(get("/datasetapis/getByStatus?status=DRAFT")
                         .contentType(MediaType.APPLICATION_JSON))
-                        .andReturn();
+                .andReturn();
         int status = mvcResult.getResponse().getStatus();
         assertEquals(200, status);
         String responseBody = mvcResult.getResponse().getContentAsString();
@@ -159,7 +161,7 @@ class DatasetControllerTest {
         MvcResult mvcResult = mockMvc.perform(post("/datasetapis/create")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(dataset1)))
-                        .andReturn();
+                .andReturn();
 
         int status = mvcResult.getResponse().getStatus();
         String responseBody = mvcResult.getResponse().getContentAsString();
@@ -177,7 +179,7 @@ class DatasetControllerTest {
 
 
     @Test
-    void updatedDataset_should_ReturnSuccessfully_with_Not() throws Exception {
+    void updatedDataset_should_ReturnSuccessfully_with_Not_Found() throws Exception {
         Dataset dataset1 = new Dataset();
         dataset1.setId("1");
         dataset1.setUpdatedBy("system");
@@ -253,7 +255,7 @@ class DatasetControllerTest {
 
         when(datasetRepository.findAll()).thenReturn(datasetList);
         MvcResult mvcResult = mockMvc.perform(get("/datasetapis/getAll")
-                .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andReturn();
         int status = mvcResult.getResponse().getStatus();
         assertEquals(200, status);
@@ -276,7 +278,7 @@ class DatasetControllerTest {
         when(datasetRepository.findById("1")).thenReturn(Optional.empty());
         MvcResult mvcResult = mockMvc.perform(get("/datasetapis/getById/1")
                         .contentType(MediaType.APPLICATION_JSON))
-                        .andReturn();
+                .andReturn();
         int status = mvcResult.getResponse().getStatus();
         assertEquals(404, status);
     }
@@ -298,7 +300,7 @@ class DatasetControllerTest {
         doNothing().when(datasetRepository).deleteById("1");
         MvcResult mvcResult = mockMvc.perform(delete("/datasetapis/delete/1")
                         .contentType(MediaType.APPLICATION_JSON))
-                        .andReturn();
+                .andReturn();
 
         int status = mvcResult.getResponse().getStatus();
         assertEquals(404, status);
@@ -549,51 +551,24 @@ class DatasetControllerTest {
         assertEquals("requested dataset id is not found or route is incorrect", params.get("error_msg"));
     }
 
-//    @Test
-//    void shouldHandleMethodArgumentException() throws Exception{
-//        Dataset dataset = new Dataset();
-//        Map<String,Object> dataSchema = new HashMap<>();
-//        dataSchema.put("json","normal");
-//        dataset.setDataSchema(null);
-//        MvcResult mvcResult = mockMvc.perform(post("/datasetapis/create").contentType(MediaType.APPLICATION_JSON)).andReturn();
-//        int status =mvcResult.getResponse().getStatus();
-//        assertEquals(400,status);
-//        String response = mvcResult.getResponse().getContentAsString();
-//        Map<String, Object> error_msg = objectMapper.readValue(response, Map.class);
-//        Map<String, Object> params = (Map<String, Object>) error_msg.get("params");
-//        assertEquals("invalid request parameter is provided",params.get("error_msg"));
-//}
 
-//    @Test
-//    void shouldReturnErrorWhenSchemaIsNull() throws Exception {
-//        Dataset validator = new Dataset();
-//        Map<String,Object> dataSchema = new HashMap<>();
-//        dataSchema.put("json","random");
-//        validator.setDataSchema(dataSchema);
-//        MvcResult mvcResult = mockMvc.perform(post("/datasetapis/create").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(validator))).andReturn();
-//
-//        Map<String, Object> result = validator.getDataSchema();
-//        String response = mvcResult.getResponse().getContentAsString();
-//
-//
-//        assertEquals("dataSchema is required", result.get("dataSchema"));
-//    }
-@Test
-void shouldHandleMethodArgumentException() throws Exception {
-    String invalidJson = "{}";
+    @Test
+    void shouldHandleMethodArgumentException() throws Exception {
+        String invalidJson = "{}";
 
-    MvcResult mvcResult = mockMvc.perform(post("/datasetapis/create")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(invalidJson))
-            .andReturn();
+        MvcResult mvcResult = mockMvc.perform(post("/datasetapis/create")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(invalidJson))
+                .andReturn();
 
-    int status = mvcResult.getResponse().getStatus();
-    assertEquals(400, status);
+        int status = mvcResult.getResponse().getStatus();
+        assertEquals(400, status);
 
-    String response = mvcResult.getResponse().getContentAsString();
-    Map<String, Object> errorMsg = objectMapper.readValue(response, Map.class);
+        String response = mvcResult.getResponse().getContentAsString();
+        Map<String, Object> errorMsg = objectMapper.readValue(response, Map.class);
 
-}
+    }
+
     @Test
     void shouldHandleGenericException() throws Exception {
         Dataset dataset = new Dataset();
@@ -624,7 +599,149 @@ void shouldHandleMethodArgumentException() throws Exception {
         assertEquals("invalid request parameter is provided.", body.get("message"));
     }
 
+    @Test
+    void shouldReturn_dataSchema_should_required() throws Exception {
+        Dataset datasetSchema = new Dataset();
+        datasetSchema.setId("1");
+        datasetSchema.setCreatedBy("system");
+        datasetSchema.setUpdatedBy("system");
+
+        datasetSchema.setCreatedByDate(LocalDateTime.now());
+        datasetSchema.setUpdatedByDate(LocalDateTime.now());
+        MvcResult mvcResult = mockMvc.perform(post("/datasetapis/create").contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(datasetSchema))).andReturn();
+        int status = mvcResult.getResponse().getStatus();
+
+        assertEquals(400, status);
+        String responsebody = mvcResult.getResponse().getContentAsString();
+
+       assertFalse(responsebody.isEmpty());
+            Map<String, Object> error_msg = objectMapper.readValue(responsebody, Map.class);
+            Map<String, Object> params = (Map<String, Object>) error_msg.get("params");
+            assertEquals("Dataschema is required", params.get("error_msg"));
+
+        }
+
+
+    @Test
+    void shouldReturn_routerConfig_should_requires_routerConfig_Error_msg() throws Exception {
+        Dataset routerConfig = new Dataset();
+        routerConfig.setId("1");
+        routerConfig.setCreatedBy("system");
+        routerConfig.setUpdatedBy("system");
+
+        Map<String, Object> dataSchema = new HashMap<>();
+        dataSchema.put("field", "value");
+        routerConfig.setDataSchema(dataSchema);
+
+        routerConfig.setCreatedByDate(LocalDateTime.now());
+        routerConfig.setUpdatedByDate(LocalDateTime.now());
+
+        MvcResult mvcResult = mockMvc.perform(post("/datasetapis/create")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(routerConfig)))
+                .andReturn();
+
+        int status = mvcResult.getResponse().getStatus();
+        assertEquals(400, status);
+
+        String responsebody = mvcResult.getResponse().getContentAsString();
+        assertFalse(responsebody.isEmpty());
+
+        Map<String, Object> error_msg = objectMapper.readValue(responsebody, Map.class);
+        Map<String, Object> params = (Map<String, Object>) error_msg.get("params");
+
+        assertEquals("Router config is required", params.get("error_msg"));
+    }
+    @Test
+    void shouldReturn_routerConfig_should_requires_routerConfig_Error_msg_updateDataset1() throws Exception {
+        Dataset exitingDataset = new Dataset();
+        exitingDataset.setId("1");
+        exitingDataset.setCreatedBy("system");
+        exitingDataset.setUpdatedBy("system");
+
+        Map<String, Object> dataSchema = new HashMap<>();
+        dataSchema.put("field", "value");
+        exitingDataset.setDataSchema(dataSchema);
+
+        exitingDataset.setCreatedByDate(LocalDateTime.now());
+        exitingDataset.setUpdatedByDate(LocalDateTime.now());
+
+        Dataset updatedDataset = new Dataset();
+        updatedDataset.setId("1");
+        updatedDataset.setCreatedBy("system");
+        updatedDataset.setUpdatedBy("system");
+        updatedDataset.setDataSchema(Map.of("json","random"));
+
+
+
+
+        MvcResult mvcResult = mockMvc.perform(put("/datasetapis/update/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updatedDataset)))
+                .andReturn();
+
+        int status = mvcResult.getResponse().getStatus();
+        assertEquals(400, status);
+
+        String responseBody = mvcResult.getResponse().getContentAsString();
+        assertFalse(responseBody.isEmpty());
+
+        Map<String, Object> response = objectMapper.readValue(responseBody, Map.class);
+        Map<String, Object> params = (Map<String, Object>) response.get("params");
+
+        assertEquals("Router config is required", params.get("error_msg"));
+    }
+    @Test
+    void testConstructorAndGetters() {
+        SimpleResponse response = new SimpleResponse("123", "Success message");
+
+        assertEquals("123", response.getId());
+        assertEquals("Success message", response.getMessage());
+    }
+
+    @Test
+    void testSetters() {
+        SimpleResponse response = new SimpleResponse(null, null);
+        response.setId("456");
+        response.setMessage("Updated message");
+
+        assertEquals("456", response.getId());
+        assertEquals("Updated message", response.getMessage());
+    }
+    @Test
+    void testCreateResponses() {
+        String status = "Success";
+        HttpStatus httpStatus = HttpStatus.OK;
+        String message = "Operation completed";
+        Object result = "Some result";
+
+        Map<String, Object> response = ResponsePost.createResponses(status, httpStatus, message, result);
+
+        assertEquals("api.create", response.get("id"));
+        assertEquals("1.0", response.get("ver"));
+        assertEquals(httpStatus.value(), response.get("responseCode"));
+
+        Map<String, Object> params = (Map<String, Object>) response.get("params");
+        assertEquals(status, params.get("status"));
+        assertEquals(message, params.get("message"));
+        assertNotNull(params.get("resmsgid"));
+        assertEquals(result, response.get("result"));
+    }
+
+    @Test
+    void testConstructorCoverage() {
+        // This is only for JaCoCo to cover the default constructor
+        new ResponsePost();
+    }
+    @Test
+    void testConstructor() {
+        new DatasetResponse();
+    }
+
+
 }
+
 
 
 
