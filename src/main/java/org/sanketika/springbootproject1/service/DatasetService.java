@@ -3,6 +3,7 @@ package org.sanketika.springbootproject1.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.sanketika.springbootproject1.entity.Dataset;
 import org.sanketika.springbootproject1.entity.Status;
+import org.sanketika.springbootproject1.kafka.KafkaProducerService;
 import org.sanketika.springbootproject1.repository.DatasetRepository;
 import org.sanketika.springbootproject1.response.DatasetResponse;
 import org.sanketika.springbootproject1.response.ResponsePost;
@@ -13,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -26,6 +28,9 @@ public class DatasetService {
     private ObjectMapper objectMapper;
     private Dataset updatedDataset;
 
+    @Autowired
+    private KafkaProducerService kafkaProducerService;
+
 
     public DatasetService(DatasetRepository datasetRepository) {
         this.datasetRepository = datasetRepository;
@@ -35,9 +40,11 @@ public class DatasetService {
     public ResponseEntity<?> getDatasetAll() {
 
         List<Dataset> datasetList = datasetRepository.findAll();
+
         if (datasetList.isEmpty()) {
             return (ResponseEntity.ok(DatasetResponse.createResponse("Success", HttpStatus.OK, "no dataset found", Collections.emptyList())));
         }
+        kafkaProducerService.getAllDataset("GET_All","GET",Instant.now().toString(),"Fetch_All_Dataset","fetched All datasetSuccessfully","Success");
         return (ResponseEntity.ok(DatasetResponse.createResponse("Success", HttpStatus.OK, null, datasetList)));
     }
 
@@ -46,7 +53,10 @@ public class DatasetService {
 
         String idString = new String(String.valueOf(id));
         Optional<Dataset> dataset = datasetRepository.findById(idString);
+        Dataset dataset1 = dataset.get();
+        String datasetId= dataset1.getId().toString();
         if (dataset.isPresent()) {
+            kafkaProducerService.sendDataset(datasetId,"GET",Instant.now().toString(),"Dataset_retrieved","Dataset retrieved Successfully with ID :" +datasetId ,"SUCCESS");
             return (ResponseEntity.ok(DatasetResponse.createResponse("Success", HttpStatus.OK, null, datasetRepository.findById(idString))));
         }
         else {
@@ -79,6 +89,7 @@ public class DatasetService {
     public ResponseEntity<Map<String,Object>> createDataset(String datasetJson) {
         try {
             Dataset dataset = objectMapper.readValue(datasetJson, Dataset.class);
+            System.out.println(dataset);
             Optional<String> validateError = Validation.validate(dataset);
             if (validateError.isPresent()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(DatasetResponse.createResponse("Fail", HttpStatus.BAD_REQUEST, validateError.get(), null));
@@ -92,6 +103,9 @@ public class DatasetService {
             dataset.setUpdatedByDate(LocalDateTime.now());
 
             Dataset savedDataset = datasetRepository.save(dataset);
+
+            kafkaProducerService.sendDataset(savedDataset.getId(),"POST", Instant.now().toString(),"Dataset_Created","Dataset Created Successfully with ID"+savedDataset.getId(),"SUCCESS");
+
             SimpleResponse simpleResponse = new SimpleResponse(savedDataset.getId(),
                     "Dataset saved successfully with ID: " + savedDataset.getId());
             return ResponseEntity.status(HttpStatus.CREATED).body(DatasetResponse.createResponse("Success", HttpStatus.CREATED, "null", simpleResponse));
@@ -101,7 +115,7 @@ public class DatasetService {
     }
 
     //updated dataset by id
-     public ResponseEntity<Map<String,Object>> updateDatasetById(String id, String updateDataset) {
+    public ResponseEntity<Map<String,Object>> updateDatasetById(String id, String updateDataset) {
         try {
 
             Dataset updateData = objectMapper.readValue(updateDataset,Dataset.class);
@@ -130,6 +144,9 @@ public class DatasetService {
 
 
             Dataset updateDatasets = datasetRepository.save(existingDataset);
+            Dataset dataset = datasetExi.get();
+            String datasetId = dataset.getId().toString();
+            kafkaProducerService.sendDataset(datasetId,"UPDATE",Instant.now().toString(),"Dataset_updated","Dataset updated successfully with ID"+datasetId,"Success");
             SimpleResponse simpleResponse = new SimpleResponse(existingDataset.getId(),"Dataset updated successfully with ID: " + existingDataset.getId());
             return ResponseEntity.ok().body(DatasetResponse.createResponse("Success", HttpStatus.OK, "null", simpleResponse));
         }catch (Exception e) {
@@ -140,17 +157,20 @@ public class DatasetService {
     //DELETEBYID
     public ResponseEntity<Map<String,Object>> deleteDatasetById(String id) {
         Optional<Dataset> datasetOpt = datasetRepository.findById(id);
+
         if (!datasetOpt.isPresent()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
                     DatasetResponse.createResponse("Fail", HttpStatus.NOT_FOUND, "Dataset not found", null));
         }
         datasetRepository.deleteById(id);
+        Dataset dataset = datasetOpt.get();
+        String datasetId= dataset.getId().toString();
+        kafkaProducerService.sendDataset(datasetId,"DELETE",Instant.now().toString(),"Dataset_Deleted","Dataset deleted Successfully with ID: "+datasetId,"SUCCESS");
         return ResponseEntity.ok(ResponsePost.createResponses("Success", HttpStatus.OK, "Dataset id is deleted successfully", null));
 
     }
 
 }
-
 
 
 
