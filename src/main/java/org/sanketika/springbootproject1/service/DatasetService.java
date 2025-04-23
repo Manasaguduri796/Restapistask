@@ -42,6 +42,7 @@ public class DatasetService {
         List<Dataset> datasetList = datasetRepository.findAll();
 
         if (datasetList.isEmpty()) {
+            kafkaProducerService.getAllDataset("GET_ALL","GET",Instant.now().toString(),"Dataset nit found","Empty_List","SUCCESS");
             return (ResponseEntity.ok(DatasetResponse.createResponse("Success", HttpStatus.OK, "no dataset found", Collections.emptyList())));
         }
         kafkaProducerService.getAllDataset("GET_All","GET",Instant.now().toString(),"Fetch_All_Dataset","fetched All datasetSuccessfully","Success");
@@ -60,6 +61,7 @@ public class DatasetService {
             return (ResponseEntity.ok(DatasetResponse.createResponse("Success", HttpStatus.OK, null, datasetRepository.findById(idString))));
         }
         else {
+            kafkaProducerService.sendDataset(datasetId,"GET",Instant.now().toString(),"Dataset_retrieved"," Dataset Not Found","Failure");
             return (ResponseEntity.status(HttpStatus.NOT_FOUND).body(DatasetResponse.createResponse("Failure", HttpStatus.NOT_FOUND, "Requested dataset id is not found", null)));
         }
 
@@ -69,15 +71,21 @@ public class DatasetService {
 
     public ResponseEntity<?> getByStatus(String status) {
         if (status == null || status.trim().isEmpty()) {
+            kafkaProducerService.sendDatasetByStatus("N/A","GET",Instant.now().toString(),"Dataset by status ","Status parameter is required for this dataset if not it will give badrequest","Failed");
             return ResponseEntity.badRequest().body( DatasetResponse.createResponse("failure", HttpStatus.BAD_REQUEST, "status parameter is required", null));
+
         }
         try {
             Status enumStatus = Status.valueOf(status.toUpperCase());
             List<Dataset> datasetList = datasetRepository.findByStatus(enumStatus);
+            Dataset dataset = datasetList.get(0);
+            String datasetId=dataset.getId().toString();
+            kafkaProducerService.sendDatasetByStatus(datasetId,"GET",Instant.now().toString(),"Dataset_retrived_by_status","Dataset retrived successfully with status : "+status,"SUCCESS");
             return ResponseEntity.ok( DatasetResponse.createResponse(
                     "success", HttpStatus.OK, null, datasetList));
 
         } catch (IllegalArgumentException e) {
+            kafkaProducerService.sendDatasetByStatus("N/A","GET",Instant.now().toString(),"Dataset_Retrived_by_status","Invalid status","Failed");
             return ResponseEntity.badRequest().body( DatasetResponse.createResponse(
                     "failure", HttpStatus.BAD_REQUEST, "Invalid status. Allowed: LIVE, DRAFT, RETIRED", null));
         }
@@ -92,9 +100,12 @@ public class DatasetService {
             System.out.println(dataset);
             Optional<String> validateError = Validation.validate(dataset);
             if (validateError.isPresent()) {
+                kafkaProducerService.sendDataset(dataset.getId(),"POST",Instant.now().toString(),"Dataset_creation","Validater is not present","Failed");
+
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(DatasetResponse.createResponse("Fail", HttpStatus.BAD_REQUEST, validateError.get(), null));
             }
             if (datasetRepository.existsById(dataset.getId())) {
+                kafkaProducerService.sendDataset(dataset.getId(),"POST",Instant.now().toString(),"Dataset_Creation","already Existed","Failed");
                 return ResponseEntity.status(HttpStatus.CONFLICT).body(DatasetResponse.createResponse("Fail", HttpStatus.CONFLICT, "Requested id is already existed", null));
             }
             dataset.setStatus(Status.valueOf("DRAFT"));
@@ -104,7 +115,7 @@ public class DatasetService {
 
             Dataset savedDataset = datasetRepository.save(dataset);
 
-            kafkaProducerService.sendDataset(savedDataset.getId(),"POST", Instant.now().toString(),"Dataset_Created","Dataset Created Successfully with ID"+savedDataset.getId(),"SUCCESS");
+            kafkaProducerService.sendDataset(savedDataset.getId(),"POST", Instant.now().toString(),"Dataset_Creation","Dataset Created Successfully with ID : "+savedDataset.getId(),"SUCCESS");
 
             SimpleResponse simpleResponse = new SimpleResponse(savedDataset.getId(),
                     "Dataset saved successfully with ID: " + savedDataset.getId());
@@ -121,10 +132,13 @@ public class DatasetService {
             Dataset updateData = objectMapper.readValue(updateDataset,Dataset.class);
             Optional<String> validationError = Validation.validateForUpdate(updateData);
             if(validationError.isPresent()){
+                kafkaProducerService.sendDataset(updateData.getId(),"UPDATE",Instant.now().toString(),"Dataset_Updation","your required validater is not present in RequestBody","Failed");
+
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(DatasetResponse.createResponse("fail",HttpStatus.BAD_REQUEST,validationError.get(),null));
             }
             Optional<Dataset> datasetExi = datasetRepository.findById(id);
             if (datasetExi.isEmpty()) {
+                kafkaProducerService.sendDataset(updateData.getId(),"UPDATE",Instant.now().toString(),"Dataset_updation","Dataset Not Found","Failed");
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(DatasetResponse.createResponse("Fail", HttpStatus.NOT_FOUND, "requested dataset id not found ", null));
             }
             Dataset existingDataset = datasetExi.get();

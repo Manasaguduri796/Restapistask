@@ -615,12 +615,12 @@ class DatasetControllerTest {
         assertEquals(400, status);
         String responsebody = mvcResult.getResponse().getContentAsString();
 
-       assertFalse(responsebody.isEmpty());
-            Map<String, Object> error_msg = objectMapper.readValue(responsebody, Map.class);
-            Map<String, Object> params = (Map<String, Object>) error_msg.get("params");
-            assertEquals("Dataschema is required", params.get("error_msg"));
+        assertFalse(responsebody.isEmpty());
+        Map<String, Object> error_msg = objectMapper.readValue(responsebody, Map.class);
+        Map<String, Object> params = (Map<String, Object>) error_msg.get("params");
+        assertEquals("Dataschema is required", params.get("error_msg"));
 
-        }
+    }
 
 
     @Test
@@ -741,13 +741,3 @@ class DatasetControllerTest {
 
 
 }
-
-
-
-
-
-
-
-
-
-
