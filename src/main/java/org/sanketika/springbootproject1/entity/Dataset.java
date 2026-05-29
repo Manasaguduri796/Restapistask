@@ -1,6 +1,8 @@
 package org.sanketika.springbootproject1.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotEmpty;
+import org.antlr.v4.runtime.misc.NotNull;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -34,16 +36,6 @@ public class Dataset {
     @UpdateTimestamp
     private LocalDateTime updatedByDate;
 
-    public Dataset(String id, Map<String, Object> dataSchema, Map<String, Object> routerConfig,Status status, String createdBy, String updatedBy, LocalDateTime createdByDate, LocalDateTime updatedByDate) {
-        this.id = id;
-        this.dataSchema = dataSchema;
-        this.routerConfig = routerConfig;
-        this.status = status;
-        this.createdBy = createdBy;
-        this.updatedBy = updatedBy;
-        this.createdByDate = createdByDate;
-        this.updatedByDate = updatedByDate;
-    }
     public Dataset(){
 
     }

@@ -8,8 +8,6 @@ import java.util.Map;
 import java.util.UUID;
 
 public class DatasetResponse {
-
-
     public static Map<String, Object> createResponse(String status, HttpStatus responseCode, String errorMessage, Object result) {
        Map<String,Object> response=new LinkedHashMap<>();
        response.put("id","api");

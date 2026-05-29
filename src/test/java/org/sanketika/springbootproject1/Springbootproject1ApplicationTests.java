@@ -9,5 +9,10 @@ class Springbootproject1ApplicationTests {
 	@Test
 	void contextLoads() {
 	}
+	@Test
+	void applicationStarts() {
+		Springbootproject1Application.main(new String[]{});
+	}
+
 
 }

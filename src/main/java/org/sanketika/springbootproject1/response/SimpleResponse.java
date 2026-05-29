@@ -8,7 +8,7 @@ public class SimpleResponse {
             this.message = message;
         }
 
-        // Getters and setters (or use Lombok @Data annotation)
+
         public String getId() {
             return id;
         }
